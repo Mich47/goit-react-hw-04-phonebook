@@ -6,38 +6,34 @@ import {
   InputStyled,
   LabelStyled,
 } from './Phonebook.styled';
-import { Component } from 'react';
+import { useState } from 'react';
 
-export class ContactForm extends Component {
-  static propTypes = {
-    onSubmit: PropTypes.func.isRequired,
+export const ContactForm = ({ onSubmit }) => {
+  const [name, setName] = useState('');
+  const changeName = event => {
+    const { value } = event.target;
+    setName(value);
+  };
+  
+  const [number, setNumber] = useState('');
+  const changeNumber = event => {
+    const { value } = event.target;
+    setNumber(value);
   };
 
-  state = {
-    name: '',
-    number: '',
+  const clearForm = () => {
+    setName('');
+    setNumber('');
   };
 
-  handleChange = event => {
-    const { name, value } = event.target;
-    this.setState({ [name]: value });
+  const clearName = () => {
+    setName('');
   };
 
-  clearForm = () => {
-    this.setState({ name: '', number: '' });
-  };
-
-  clearName = () => {
-    this.setState({ name: '' });
-  };
-
-  render() {
-    const { onSubmit } = this.props;
-    const { name, number } = this.state;
     return (
       <FormStyled
         onSubmit={event => {
-          onSubmit(event, name, number) ? this.clearForm() : this.clearName();
+          onSubmit(event, name, number) ? clearForm() : clearName();
         }}
       >
         <Box display="flex" flexDirection="column">
@@ -51,7 +47,7 @@ export class ContactForm extends Component {
             title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
             required
             autoFocus
-            onChange={this.handleChange}
+            onChange={changeName}
           />
         </Box>
         <Box display="flex" flexDirection="column">
@@ -64,11 +60,14 @@ export class ContactForm extends Component {
             pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
             required
-            onChange={this.handleChange}
+            onChange={changeNumber}
           />
         </Box>
         <ButtonStyled type="submit">Add contact</ButtonStyled>
       </FormStyled>
     );
-  }
 }
+
+ContactForm.propTypes = {
+    onSubmit: PropTypes.func.isRequired,
+  };

@@ -1,47 +1,43 @@
 import { nanoid } from 'nanoid';
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { ContactForm } from './Phonebook/ContactForm';
 import { ContactList } from './Phonebook/ContactList';
 import { Filter } from './Phonebook/Filter';
 import { Section } from './Phonebook/Section';
 
-export class App extends Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
+const CONTACTS = [
+  { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+  { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+  { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+  { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+];
 
-  componentDidMount() {
+export const App = () => {
+  const [contacts, setContacts] = useState(() => {
     const contactsInLS = localStorage.getItem('contacts');
     if (contactsInLS) {
-      this.setState({ contacts: JSON.parse(contactsInLS) });
+      return JSON.parse(contactsInLS);
     }
-  }
-
-  componentDidUpdate(_, prevState) {
-    const { contacts } = this.state;
-    if (contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(contacts));
-    }
-  }
-
-  handleChange = event => {
-    const { name, value } = event.target;
-    this.setState({ [name]: value });
+    return CONTACTS;
+  });
+  
+  const [filter, setFilter] = useState('');
+  
+  const handleChangeFilter = event => {
+    const { value } = event.target;
+    setFilter(value);
   };
+  
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-  handleSubmitForm = (event, name, number) => {
+  const handleSubmitForm = (event, name, number) => {
     event.preventDefault();
-    return this.handleAddedContact(name, number);
+    return handleAddedContact(name, number);
   };
 
-  handleAddedContact = (name, number) => {
-    const { contacts } = this.state;
+  const handleAddedContact = (name, number) => {
     //Контакт вже існує, повертає false
     if (contacts.some(contact => contact.name === name)) {
       alert(`${name} is already in contacts.`);
@@ -49,44 +45,30 @@ export class App extends Component {
     }
 
     //Інакше додає новий контакт, повертає true
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, { id: nanoid(), name, number }],
-    }));
+    setContacts(prev => [...prev, { id: nanoid(), name, number }]);
     return true;
   };
 
-  handleDeleteContact = id => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(item => item.id !== id),
-    }));
-  };
+  const handleDeleteContact = id => setContacts(prev => prev.filter(item => item.id !== id));
 
-  handleFilterContacts = filter => {
-    const { contacts } = this.state;
-    return contacts.filter(({ name }) => {
-      return name.toLowerCase().includes(filter.toLowerCase());
-    });
-  };
+  const handleFilterContacts = query => contacts.filter(({ name }) => name.toLowerCase().includes(query.toLowerCase()));
 
-  render() {
-    const { contacts, filter } = this.state;
-    const renderContacts = filter
-      ? this.handleFilterContacts(filter)
-      : contacts;
+  const renderContacts = filter
+  ? handleFilterContacts(filter)
+  : contacts;
 
-    return (
-      <>
-        <Section title="Phonebook">
-          <ContactForm onSubmit={this.handleSubmitForm} />
-        </Section>
-        <Section title="Contacts" headingLevel="h2">
-          <Filter filter={filter} onChange={this.handleChange} />
-          <ContactList
-            contacts={renderContacts}
-            onDelete={this.handleDeleteContact}
-          />
-        </Section>
-      </>
-    );
-  }
+  return (
+    <>
+      <Section title="Phonebook">
+        <ContactForm onSubmit={handleSubmitForm} />
+      </Section>
+      <Section title="Contacts" headingLevel="h2">
+        <Filter filter={filter} onChange={handleChangeFilter} />
+        <ContactList
+          contacts={renderContacts}
+          onDelete={handleDeleteContact}
+        />
+      </Section>
+    </>
+  );
 }
